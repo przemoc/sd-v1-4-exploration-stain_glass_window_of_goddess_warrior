@@ -77,7 +77,7 @@ const img_zoom_class = new Map([
     ["fit-view", { title: "fit image to the viewport (scroll down may be needed)", },],
     ["fit-width", { title: "fit image width to the viewport", },],
     ["normal", { title: "100% (but not really if you have scaling in your OS)", },],
-    ["pixel", { title: "attempt 1 image pixel = 1 device pixel (hit P key to recalc)", },],
+    ["pixel", { title: "attempt 1 image pixel = 1 device pixel for non-high-density displays (hit P key to recalc)", },],
 ]);
 var cached_images = {};
 function addOption(container, name, value, listener, title) {
