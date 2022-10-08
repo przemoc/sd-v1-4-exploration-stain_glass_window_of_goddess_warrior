@@ -80,6 +80,11 @@ const img_zoom_class = new Map([
     ["pixel", { title: "attempt 1 image pixel = 1 device pixel for non-high-density displays (hit P key to recalc)", },],
 ]);
 var cached_images = {};
+var touchbegX = null;
+var touchendX = null;
+var touchbegY = null;
+var touchendY = null;
+var scrolling = false;
 function addOption(container, name, value, listener, title) {
     container.optionCount = container.optionCount || 0;
     let radio = document.createElement("input");
@@ -184,6 +189,28 @@ document.addEventListener("DOMContentLoaded", function(event) {
             // TODO
         }
     });
+     document.addEventListener('touchmove', function(event) {
+        if (!scrolling) {
+            if (touchbegX == null)
+                touchbegX = event.changedTouches[0].screenX;
+            touchendX = event.changedTouches[0].screenX;
+            if (touchbegY == null)
+                touchbegY = event.changedTouches[0].screenY;
+            touchendY = event.changedTouches[0].screenY;
+        } else {
+            touchbegX = touchendX = touchbegY = touchendY = null;
+            scrolling -= 1;
+        }
+    }, { passive: true });
+    document.addEventListener('touchend', function(event) {
+        if (touchendX != null && touchbegX != null && Math.abs(touchendX - touchbegX) > 150) // horizontal swipe
+            selectNextInput("seed_resize", (touchendX - touchbegX > 0));
+        if (touchendY != null && touchbegY != null && Math.abs(touchendY - touchbegY) > 150) // vertical swipe
+            selectNextInput("output", (touchendY - touchbegY < 0));
+        touchbegX = touchendX = touchbegY = touchendY = null;
+        scrolling = 0;
+    }, { passive: true });
+    document.addEventListener('scroll', function(event) { scrolling = 4; }, { passive: true });
 });
 </script>
 </head>
