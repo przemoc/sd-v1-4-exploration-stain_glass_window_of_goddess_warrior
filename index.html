@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Stable Diffusion v1.4 - Steps, CFG scale, and Seed resize exploration - stain glass window of goddess warrior</title>
+<link rel="stylesheet" href="normalize.css">
+<style title="embedded">
+.pixel { transform-origin: 0 0; } /* 0th rule to easily update via javascript */
+body { padding: 1em 1em 0 1em; background-color: #fff; color: #222; }
+body.fullscreen { display: block; padding: 0; }
+h1 { color: 000; }
+a { color: #66f; text-decoration: none; }
+a:hover { text-decoration: underline; }
+input[type="radio"] { opacity: 0; position: fixed; width: 0; }
+.value { display: inline-block; background-color: #ddf; color: #222; border: 2px solid #bbf; border-radius: 2px; margin: 0 2px 0 2px; padding: 0 2px 0 2px; box-sizing: border-box; }
+.value:hover { border-color: #77f; }
+.value:active { background-color: #ccf; }
+label  { display: inline-block; background-color: #ddd; color: #222; border: 2px solid #bbb; border-radius: 2px; margin: 0 2px 0 2px; padding: 0 2px 0 2px; box-sizing: border-box; }
+input[type="radio"]:disabled      + label { background-color: #999; border-color: #777; color: #000; }
+input[type="radio"]:checked       + label { background-color: #bbf; border-color: #99f; color: #000; }
+input[type="radio"]:enabled:hover + label { border-color: #77f; }
+input[type="radio"]:focus         + label { border: 2px dashed #000; }
+.fullscreen #static  { display: none; }
+.fullscreen #dynamic { position: fixed; transform: scale(0.5); transform-origin: 0 0; opacity: 0.6; z-index: 1; }
+.fullscreen #dynamic:hover { opacity: 0.9; }
+#image { display: block; }
+#image.fit-view  { width: 100%; height: 100vh; object-fit: contain; object-position: center top; }
+#image.fit-width { max-width: 100%; }
+@media (prefers-color-scheme: dark) {
+    body { background-color: #000; color: #ddd; }
+    .fullscreen #dynamic { background-color: #000; }
+}
+</style>
+<script type="text/javascript">
+const img_seed_size_to_path = {
+    "192x256": {
+        "afew": "stain_glass_window_of_goddess_warrior-384x512-seed_0192x0256-afew.jpg",
+        "4000": "stain_glass_window_of_goddess_warrior-384x512-seed_0192x0256-4000.jpg",
+        "full": "stain_glass_window_of_goddess_warrior-384x512-seed_0192x0256.jpg",
+    },
+    "384x512": {
+        "afew": "stain_glass_window_of_goddess_warrior-384x512-seed_0384x0512-afew.jpg",
+        "4000": "stain_glass_window_of_goddess_warrior-384x512-seed_0384x0512-4000.jpg",
+        "full": "stain_glass_window_of_goddess_warrior-384x512-seed_0384x0512.jpg",
+    },
+    "768x1024": {
+        "afew": "stain_glass_window_of_goddess_warrior-384x512-seed_0768x1024-afew.jpg",
+        "4000": "stain_glass_window_of_goddess_warrior-384x512-seed_0768x1024-4000.jpg",
+        "full": "stain_glass_window_of_goddess_warrior-384x512-seed_0768x1024.jpg",
+    },
+    "1152x1536": {
+        "afew": "stain_glass_window_of_goddess_warrior-384x512-seed_1152x1536-afew.jpg",
+        "4000": "stain_glass_window_of_goddess_warrior-384x512-seed_1152x1536-4000.jpg",
+        "full": "stain_glass_window_of_goddess_warrior-384x512-seed_1152x1536.jpg",
+    },
+    "1536x2048": {
+        "afew": "stain_glass_window_of_goddess_warrior-384x512-seed_1536x2048-afew.jpg",
+        "4000": "stain_glass_window_of_goddess_warrior-384x512-seed_1536x2048-4000.jpg",
+        "full": "stain_glass_window_of_goddess_warrior-384x512-seed_1536x2048.jpg",
+    },
+    "3072x4096": {
+        "afew": "stain_glass_window_of_goddess_warrior-384x512-seed_3072x4096-afew.jpg",
+        "4000": "stain_glass_window_of_goddess_warrior-384x512-seed_3072x4096-4000.jpg",
+        "full": "stain_glass_window_of_goddess_warrior-384x512-seed_3072x4096.jpg",
+    },
+    "4608x6144": {
+        "afew": "stain_glass_window_of_goddess_warrior-384x512-seed_4608x6144-afew.jpg",
+        "4000": "stain_glass_window_of_goddess_warrior-384x512-seed_4608x6144-4000.jpg",
+        "full": "stain_glass_window_of_goddess_warrior-384x512-seed_4608x6144.jpg",
+    },
+};
+const img_out = new Map([
+    ["afew", { width:  2592, height:  2114, title: "grid with limited selection (6x4; <1.3MB)", },],
+    ["4000", { width:  4000, height:  3971, title: "full grid, scaled to 4000px (80x60; <8.3MB)", },],
+    ["full", { width: 31008, height: 30786, title: "full grid (80x60; <80MB; generated using: mozjpeg -baseline -quality 40)", },],
+]);
+const img_zoom_class = new Map([
+    ["fit-view", { title: "fit image to the viewport (scroll down may be needed)", },],
+    ["fit-width", { title: "fit image width to the viewport", },],
+    ["normal", { title: "100% (but not really if you have scaling in your OS)", },],
+    ["pixel", { title: "attempt 1 image pixel = 1 device pixel (hit P key to recalc)", },],
+]);
+var cached_images = {};
+function addOption(container, name, value, listener, title) {
+    container.optionCount = container.optionCount || 0;
+    let radio = document.createElement("input");
+    const optionIndex = container.optionCount;
+    radio.type = "radio";
+    radio.name = name;
+    radio.id = name + optionIndex;
+    radio.value = value;
+    radio.addEventListener("change", listener);
+    container.appendChild(radio);
+    let label = document.createElement("label");
+    label.innerText = value;
+    label.htmlFor = name + optionIndex;
+    if (title != undefined)
+        label.title = title;
+    container.appendChild(label);
+    container.optionCount += 1;
+}
+function cacheImage(path) {
+    if (!(path in cached_images)) {
+        cached_images[path] = new Image();
+        cached_images[path].src = path;
+    }
+    return cached_images[path].src;
+}
+function updateImage() {
+    const output = document.getElementById("output").optionValue;
+    const seed_resize = document.getElementById("seed_resize").optionValue;
+    const zoom = document.getElementById("zoom").optionValue;
+    if (output == null || seed_resize == null || zoom == null)
+        return;
+    let img = document.getElementById("image");
+    if (zoom == "pixel")
+        updatePixelClass();
+    img.className = zoom;
+    img.src = cacheImage(img_seed_size_to_path[seed_resize][output]);
+}
+function setOption(event) {
+    if (event.target.parentNode.optionValue != event.target.value) {
+        event.target.parentNode.optionValue = event.target.value;
+        updateImage();
+    }
+}
+function selectNextInput(containerId, reverse) {
+    let container = document.getElementById(containerId);
+    let elems = container.getElementsByTagName("input");
+    let index = Array.prototype.indexOf.call(elems, container.querySelector("input:checked"));
+    let i = 0;
+    for (i = (reverse ? -1 : 1); Math.abs(i) <= elems.length; i += (reverse ? -1 : 1)) {
+        if (!elems[(elems.length + index + i) % elems.length].disabled)
+            break;
+    }
+    elems[(elems.length + index + i) % elems.length].click();
+}
+function updatePixelClass() {
+    document.styleSheets[1].insertRule(".pixel { transform-origin: 0 0; transform: scale(" + (1 / window.devicePixelRatio) + "); }");
+    document.styleSheets[1].deleteRule(1);
+}
+document.addEventListener("DOMContentLoaded", function(event) {
+    let seed_resize = document.getElementById("seed_resize");
+    const seed_sizes = Object.keys(img_seed_size_to_path);
+    for (let index = 0; index < seed_sizes.length; ++index) {
+        const value = seed_sizes[index];
+        addOption(seed_resize, "sr", value, setOption);
+    }
+    let output = document.getElementById("output");
+    for (const [key, value] of img_out) {
+        addOption(output, "out", key, setOption, value.title);
+    }
+    let zoom = document.getElementById("zoom");
+    for (const [key, value] of img_zoom_class) {
+        addOption(zoom, "zm", key, setOption, value.title);
+    }
+    output.firstChild.click();
+    seed_resize.firstChild.click();
+    zoom.firstChild.click();
+    updateImage();
+    document.addEventListener("click", function(event) {
+        if (event.target.className == "value")
+            navigator.clipboard.writeText(event.target.innerText);
+    })
+    document.addEventListener("keydown", function(event) {
+        // console.log(event);
+        if (event.keyCode >= 49 && event.keyCode <= 57) { // 1...9
+            let index = event.keyCode - 49;
+            let elems = seed_resize.getElementsByTagName("input")
+            if (index >= elems.length)
+                return
+            elems[index].click();
+        }
+        else if (event.keyCode == 79) /* O */ selectNextInput("output", event.shiftKey);
+        else if (event.keyCode == 82) /* R */ selectNextInput("seed_resize", event.shiftKey);
+        else if (event.keyCode == 90) /* Z */ selectNextInput("zoom", event.shiftKey);
+        else if (event.keyCode == 70) /* F */ document.documentElement.requestFullscreen();
+        else if (event.keyCode == 72) /* H */ document.body.classList.toggle("fullscreen");
+        else if (event.keyCode == 80) /* P */ {
+            updatePixelClass();
+            zoom.value = "pixel";
+            updateImage();
+            zoom.querySelector("input[value='pixel']").click(); }
+        else if (event.keyCode == 19 && event.shiftKey) /* ? */ {
+            // TODO
+        }
+    });
+});
+</script>
+</head>
+<body>
+<div id="static">
+<h1>Stable Diffusion v1.4 - Steps, CFG scale, and Seed resize exploration - stain glass window of goddess warrior</h1>
+<b>Prompt:</b>
+<span class="value">stain glass window of goddess warrior, light shiny through, intricate, elegant, highly detailed, digital painting, sharp focus, realistic, hyperrealistic, cinematic, illustration</span>
+<br>
+(prompt taken from <a href="https://prompthero.com/prompt/f8c755d2482">https://prompthero.com/prompt/f8c755d2482</a>)
+<br>
+<b>Steps:</b> <span class="value">1-80</span>
+<b>Sampler:</b> <span class="value">Euler a</span>
+<b>CFG scale:</b> <span class="value">0.5-30.0 (+0.5)</span>
+<b>Seed:</b> <span class="value">1089567288</span>
+<b>Size:</b> <span class="value">384x512</span><br>
+<b>Tool:</b> <span class="value"><a href="https://github.com/AUTOMATIC1111/stable-diffusion-webui/">AUTOMATIC1111/stable-diffusion-webui/</a></span>
+</div>
+<div id="dynamic">
+<b>Seed <u>r</u>esize from:</b>
+<span id="seed_resize"></span>
+<br>
+<b><u>O</u>utput:</b>
+<span id="output"></span>
+<b><u>Z</u>oom:</b>
+<span id="zoom"></span>
+</div>
+<img id="image">
+</body>
+</html>
