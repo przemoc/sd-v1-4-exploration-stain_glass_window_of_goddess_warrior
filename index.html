@@ -123,7 +123,7 @@ function cacheImage(path) {
             span.title = "Loading " + path + " failed!";
             console.log(span.title);
             setTimeout(function() { loading.removeChild(span); }, 5000);
-        }
+        };
         cached_images[path].onload = function(event) {
             span.innerText = "D";
             span.className = "done";
@@ -189,14 +189,14 @@ document.addEventListener("DOMContentLoaded", function(event) {
     document.addEventListener("click", function(event) {
         if (event.target.className == "value")
             navigator.clipboard.writeText(event.target.innerText);
-    })
+    });
     document.addEventListener("keydown", function(event) {
         // console.log(event);
         if (event.keyCode >= 49 && event.keyCode <= 57) { // 1...9
             let index = event.keyCode - 49;
-            let elems = seed_resize.getElementsByTagName("input")
+            let elems = seed_resize.getElementsByTagName("input");
             if (index >= elems.length)
-                return
+                return;
             elems[index].click();
         }
         else if (event.keyCode == 79) /* O */ selectNextInput("output", event.shiftKey);
