@@ -50,6 +50,8 @@ input[type="radio"]:focus         + label { border: 2px dashed #000; }
 #loading .loading { color: #990; animation: blinker 0.5s linear infinite; }
 #loading .done    { color: #090; }
 #loading .error   { color: #900; }
+#loading #ltext { color: #888; }
+#loading #ltext:only-child { display: none; }
 @media (prefers-color-scheme: dark) {
     body { background-color: #000; color: #ddd; }
     .fullscreen #dynamic { background-color: #000; }
@@ -281,7 +283,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
 <span id="output"></span>
 <b><u>Z</u>oom:</b>
 <span id="zoom"></span>
-<span id="loading"></span>
+<span id="loading"><span id="ltext">Loading:</span></span>
 </div>
 <img id="image">
 </body>
