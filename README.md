@@ -62,6 +62,16 @@ webui commit <= d62954c2bc149053f9f51dfe95751b9e0ea29f03
 9:03:27 + 9:00:45 + 9:09:00 + 9:10:56 + 9:12:28 + 9:14:33 + 9:15:41
 = 64h 06min 50sec
 
+### Seed resize from: 2304x3072
+
+**SW**:
+cuda-11-8, Python 3.10.6, PyTorch 1.12.1,
+webui commit <= be1596ce30b1ead6998da0c62003003dcce5eb2c
+
+**Time**:
+10:29:55
+= 10h 29min 55sec
+
 
 License
 -------
