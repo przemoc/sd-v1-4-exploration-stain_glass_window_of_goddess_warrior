@@ -10,7 +10,8 @@ different steps and CFG scale shown in X/Y plots per different seed resizing.
 ![Preview](preview.jpg)
 
 **Tool**:
-[AUTOMATIC1111/stable-diffusion-webui](https://github.com/AUTOMATIC1111/stable-diffusion-webui/)
+[AUTOMATIC1111/stable-diffusion-webui](https://github.com/AUTOMATIC1111/stable-diffusion-webui/),
+commit <= d62954c2bc149053f9f51dfe95751b9e0ea29f03
 
 **Prompt**: stain glass window of goddess warrior, light shiny through,
 intricate, elegant, highly detailed, digital painting, sharp focus, realistic,
