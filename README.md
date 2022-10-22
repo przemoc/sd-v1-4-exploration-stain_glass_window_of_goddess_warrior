@@ -52,7 +52,8 @@ NUC11PHKi7C002, Core i7-1165G7 @ 2.80GHz, Lexar 1x32GB DDR4-3200 CL22
 Mobile @ 1005MHz 6GB (517.40)
 
 **SW**:
-Windows 11 Pro (10.0.22621), WSL: Ubuntu 22.04.1, cuda-11-7, Python 3.8.5
+Windows 11 Pro (10.0.22621), WSL: Ubuntu 22.04.1, cuda-11-7, Python 3.8.5,
+PyTorch 1.11.0
 
 **Time**:
 9:03:27 + 9:00:45 + 9:09:00 + 9:10:56 + 9:12:28 + 9:14:33 + 9:15:41
